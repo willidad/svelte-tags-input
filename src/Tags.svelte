@@ -93,17 +93,7 @@ function setTag(e) {
     if (removeKeys) {
         removeKeys.forEach(function(key) {
             if (key === e.keyCode && tag === "") {
-                let removedTag = tags.pop();  
-                tags = tags;
-
-                dispatch('tagRemoved', {
-                    tag: removedTag
-                });
-
-                arrelementsmatch = [];
-                document.getElementById(id).readOnly = false;
-                placeholder = storePlaceholder;
-                document.getElementById(id).focus();
+                removeTag(tags.length-1) // thie last tag
             }
         });
     }
@@ -140,9 +130,10 @@ function addTag(currentTag) {
     if (onlyAutocomplete && arrelementsmatch.length === 0) return;
 
     let newTag = currentObjTags ? currentObjTags : currentTag
-        
-    tags.push(newTag)
-    tags = tags;
+    // do not mute the tags array with push or pop. 
+    tags = tags.concat([newTag])
+    //tags.push(newTag)
+    //tags = tags;
     tag = "";
 
     dispatch('tagAdded', {
@@ -162,9 +153,9 @@ function addTag(currentTag) {
 }
 
 function removeTag(i) {
-    
-    let removedTag = tags.splice(i, 1);
-    tags = tags;
+    // do not mute the tags array with push or pop. 
+    let removedTag = tags[i];
+    tags = tags.slice(0, i).concat(tags.slice(i+1));
 
     dispatch('tagRemoved', {
 		tag: removedTag
