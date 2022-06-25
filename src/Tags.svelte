@@ -81,8 +81,8 @@ function setTag(e) {
                     addTag(currentTag);
                     break;
                 } */
-                if (autoComplete && document.getElementById(matchsID)) {
-                    addTag(document.getElementById(matchsID).querySelectorAll("li")[0].textContent);
+                if (autoComplete && arrelementsmatch.length > 0) {
+                    addTag(arrelementsmatch[0].label);
                 } else {
                     addTag(currentTag);
                 }
@@ -93,11 +93,11 @@ function setTag(e) {
     if (removeKeys) {
         removeKeys.forEach(function(key) {
             if (key === e.keyCode && tag === "") {
-                tags.pop();  
+                let removedTag = tags.pop();  
                 tags = tags;
 
-                dispatch('tags', {
-                    tags: tags
+                dispatch('tagRemoved', {
+                    tag: removedTag
                 });
 
                 arrelementsmatch = [];
@@ -138,13 +138,15 @@ function addTag(currentTag) {
     if (maxTags && tags.length == maxTags) return;
     if (onlyUnique && tags.includes(currentTag)) return;
     if (onlyAutocomplete && arrelementsmatch.length === 0) return;
+
+    let newTag = currentObjTags ? currentObjTags : currentTag
         
-    tags.push(currentObjTags ? currentObjTags : currentTag)
+    tags.push(newTag)
     tags = tags;
     tag = "";
 
-    dispatch('tags', {
-        tags: tags
+    dispatch('tagAdded', {
+        tag: newTag
     });
     
     // Hide autocomplete list
@@ -161,11 +163,11 @@ function addTag(currentTag) {
 
 function removeTag(i) {
     
-    tags.splice(i, 1);
+    let removedTag = tags.splice(i, 1);
     tags = tags;
 
-    dispatch('tags', {
-		tags: tags
+    dispatch('tagRemoved', {
+		tag: removedTag
 	});    
     
     // Hide autocomplete list
