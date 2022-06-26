@@ -32,6 +32,7 @@ export let labelText;
 export let labelShow;
 
 let layoutElement;
+let dirty = false;
 
 $: tags = tags || [];
 $: addKeys = addKeys || [13];
@@ -54,6 +55,7 @@ $: minChars = minChars || 1;
 $: onlyAutocomplete = onlyAutocomplete || false;
 $: labelText = labelText || name;
 $: labelShow = labelShow || false;
+$: dirty = tags.length > 0
 
 $: matchsID = id + "_matchs";
 
@@ -343,45 +345,52 @@ function uniqueID() {
 };
 
 </script>
-
-<div class="svelte-tags-input-layout" class:sti-layout-disable={disable} bind:this={layoutElement}>
-    <label for={id} class={labelShow ? "" : "sr-only"}>{labelText}</label>
-
-    {#if tags.length > 0}
-        {#each tags as tag, i}
-            <span class="svelte-tags-input-tag">
-                {#if typeof tag === 'string'}
-                    {tag}
-                {:else}
-                    {tag[autoCompleteKey]}
-                {/if}
-                {#if !disable}
-                <span class="svelte-tags-input-tag-remove" on:click={() => removeTag(i)}> &#215;</span>
-                {/if}
-            </span>
-        {/each}
-    {/if}
-    <input
-        type="text"
-        id={id}
-        name={name}
-        bind:value={tag}
-        on:keydown={setTag}
-        on:keyup={getMatchElements}
-        on:paste={onPaste}
-        on:drop={onDrop}
-        on:focus={onFocus}
-        on:blur={(e) => onBlur(e, tag)}
-        on:click={onClick}
-        class="svelte-tags-input"
-        placeholder={placeholder}
-        disabled={disable}
-    >
+<div class="textfield baseline" class:dirty>
+    <div class="tags-container" class:sti-layout-disable={disable} bind:this={layoutElement}>
+        {#if tags.length > 0}
+            {#each tags as tag, i}
+                <span class="input-tag">
+                    {#if typeof tag === 'string'}
+                        {tag}
+                    {:else}
+                        {tag[autoCompleteKey]}
+                    {/if}
+                    {#if !disable}
+                    <span class="input-tag-remove" on:click={() => removeTag(i)}> &#215;</span>
+                    {/if}
+                </span>
+            {/each}
+        {/if}
+        <input
+            type="text"
+            id={id}
+            name={name}
+            bind:value={tag}
+            on:keydown={setTag}
+            on:keyup={getMatchElements}
+            on:paste={onPaste}
+            on:drop={onDrop}
+            on:focus={onFocus}
+            on:blur={(e) => onBlur(e, tag)}
+            on:click={onClick}
+            class="tags-input"
+            placeholder={placeholder}
+            disabled={disable}
+        >
+        <div class="label">
+            {labelText}
+            <!--{#if required && !value.length}
+              <span class="required">*</span>
+            {/if}-->
+          </div>
+        <div class="focus-line"></div>
+        <div class="input-line"></div>
+    </div>
 </div>
 
 {#if autoComplete && arrelementsmatch.length > 0}
-    <div class="svelte-tags-input-matchs-parent">
-        <ul id="{id}_matchs" class="svelte-tags-input-matchs">
+    <div class="tags-input-matchs-parent">
+        <ul id="{id}_matchs" class="tags-input-matchs">
             {#each arrelementsmatch as element, index}
                 <li
                     tabindex="-1"
@@ -397,90 +406,186 @@ function uniqueID() {
 <style>
 /* CSS svelte-tags-input */
 
-.svelte-tags-input,
-.svelte-tags-input-tag,
-.svelte-tags-input-matchs,
-.svelte-tags-input-layout label {
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",sans-serif;
-    font-size: 14px;
-    padding: 2px 5px;
+.textfield {
+    font-family: Roboto, "Segoe UI", sans-serif;
+    font-weight: 400;
+    font-size: inherit;
+    text-decoration: inherit;
+    text-transform: inherit;
+    box-sizing: border-box;
+    margin: 0 0 20px;
+    position: relative;
+    width: 100%;
+    background-color: inherit;
+    will-change: opacity, transform, color;
+    min-height: 53px;
 }
 
-.svelte-tags-input-layout label {
-    margin: 4px 5px 0 0;
-    padding:0;
-    font-weight:500;
+.input-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.3755);
+    /* postcss-custom-properties: ignore next */
+    background: var(--label, rgba(0, 0, 0, 0.3755));
+  }
+
+.focus-line {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    -webkit-transform: scaleX(0);
+    /* autoprefixer: ignore next */
+    transform: scaleX(0);
+    /* autoprefixer: ignore next */
+    transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.18s cubic-bezier(0.4, 0, 0.2, 1),
+        -webkit-transform 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    /* autoprefixer: ignore next */
+    transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    z-index: 2;
+    background: #1976d2;
+    /* postcss-custom-properties: ignore next */
+    background: var(--primary, #1976d2);
 }
+
+
+.baseline {
+    
+}
+
+/*.tags-input,
+.input-tag,
+.tags-input-matchs,
+.label {
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",sans-serif;
+    font-size: 14px;
+    padding: 5px 10px;
+}*/
+
+.label {
+    font: inherit;
+    display: inline-flex;
+    position: absolute;
+    left: 0;
+    top: 28px;
+    padding-right: 0.2em;
+    color: rgba(0, 0, 0, 0.3755);
+    /* postcss-custom-properties: ignore next */
+    color: var(--label, rgba(0, 0, 0, 0.3755));
+    background-color: inherit;
+    pointer-events: none;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    overflow: hidden;
+    max-width: 90%;
+    white-space: nowrap;
+    transform-origin: left top;
+    transition: 0.18s cubic-bezier(0.25, 0.8, 0.5, 1);
+  }
 
 /* svelte-tags-input-layout */
 
-.svelte-tags-input-layout {
-    display:-webkit-box;
-    display:-ms-flexbox;
-    display:flex;
-    -ms-flex-wrap:wrap;
-        flex-wrap:wrap;
-    -webkit-box-align:center;
-        -ms-flex-align:center;
-            align-items:center;
-    padding: 0px 5px 5px 5px;
-    border: solid 1px #CCC;
+.tags-container {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
     background: #FFF;
     border-radius: 2px;
+    align-items: center;
+    padding-top: 25px;
+    padding-bottom: 3px;
+}
+.tags-container:hover .input-line  {
+    background: #333;
+    /* postcss-custom-properties: ignore next */
+    background: var(--color, #333);
 }
 
-.svelte-tags-input-layout:focus,
-.svelte-tags-input-layout:hover {
+
+
+/*.tags-container:focus,
+.tags-container:hover {
     border: solid 1px #000;    
-}
+}*/
 
 /* svelte-tags-input */
 
-.svelte-tags-input {
+.tags-input {
     -webkit-box-flex: 1;
-        -ms-flex: 1;
-            flex: 1; 
-    margin: 0;
-    margin-top: 5px;
-    border:none;
+    -ms-flex: 1;
+    flex: 1;
+    margin: 5px 5px 5px 0;
+    border: none;
 }
 
-.svelte-tags-input:focus {
+.tags-input:focus {
     outline:0;
 }
+.tags-input:focus ~ .focus-line {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+
+.dirty .label {
+    letter-spacing: 0.4px;
+    top: 6px;
+    bottom: unset;
+    font-size: 13px;
+  }
+.tags-input:focus ~ .label {
+    letter-spacing: 0.4px;
+    top: 6px;
+    bottom: unset;
+    font-size: 13px;
+    color: #1976d2;
+    /* postcss-custom-properties: ignore next */
+    color: var(--primary, #1976d2);
+  }
 
 /* svelte-tags-input-tag */
 
-.svelte-tags-input-tag {
-    display:-webkit-box;
-    display:-ms-flexbox;
-    display:flex;
+.input-tag {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
     white-space: nowrap;
-    list-style:none;
-    background: #000;
+    list-style: none;
+    background: #333;
     color: #FFF;
-    border-radius: 2px;
-    margin-right: 5px;
-    margin-top: 5px;
+    border-radius: 1rem;
+    margin: 3px 5px 3px 0;
+    padding: 0 10px;
+    ;
 }
 
 /*.svelte-tags-input-tag:hover {
     background: #CCC;
 }*/
 
-.svelte-tags-input-tag-remove {
+.input-tag-remove {
     cursor:pointer;
+    padding-left: 2px;
 }
 
 /* svelte-tags-input-matchs */
 
-.svelte-tags-input-matchs-parent {
+.tags-input-matchs-parent {
     position:relative;
 }
 
-.svelte-tags-input-matchs {
+.tags-input-matchs {
     position:absolute;
-    top:0;
+    top:-20px;
     left:0;
     right:0;
     margin:3px 0;
@@ -489,45 +594,47 @@ function uniqueID() {
     border: solid 1px #CCC;
     border-radius: 2px;
     max-height:310px;
-    overflow:scroll;
     overflow-x:auto;
+    z-index: 100;
 }
 
-.svelte-tags-input-matchs li {
+.tags-input-matchs li {
     list-style:none;
     padding:5px;
     border-radius: 2px;
     cursor:pointer;
 }
 
-.svelte-tags-input-matchs li:hover,
-.svelte-tags-input-matchs li:focus {
+.tags-input-matchs li:hover,
+.tags-input-matchs li:focus {
     background:#000;
     color:#FFF;
     outline:none;
 }
 
-/* svelte-tags-input disabled */
-.svelte-tags-input-layout.sti-layout-disable,
-.svelte-tags-input:disabled {
-    background: #EAEAEA;
+
+.tags-container.sti-layout-disable,
+.input-tag:disabled {
+    /*background: #EAEAEA;*/
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/*.tags-container.sti-layout-disable:hover,
+.tags-container.sti-layout-disable:focus {
+    border-color:rgb(117, 117, 117);
+}
+
+/*.tags-input-layout.sti-layout-disable .tags-input-tag {
+    /*background: #333;
+    opacity: 0.5;
+}
+
+.tags-container.sti-layout-disable .tags-input-remove {
     cursor: not-allowed;
 }
 
-.svelte-tags-input-layout.sti-layout-disable:hover,
-.svelte-tags-input-layout.sti-layout-disable:focus {
-    border-color:#CCC;
-}
-
-.svelte-tags-input-layout.sti-layout-disable .svelte-tags-input-tag {
-    background: #AEAEAE;
-}
-
-.svelte-tags-input-layout.sti-layout-disable .svelte-tags-input-tag-remove {
-    cursor: not-allowed;
-}
-
-.svelte-tags-input-layout label.sr-only {
+.tags-container label {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -537,5 +644,5 @@ function uniqueID() {
     clip: rect(0, 0, 0, 0);
     white-space: nowrap;
     border: 0;
-}
+}*/
 </style>
