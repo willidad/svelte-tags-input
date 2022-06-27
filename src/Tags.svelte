@@ -28,8 +28,11 @@ export let allowBlur;
 export let disable;
 export let minChars;
 export let onlyAutocomplete;
-export let labelText;
-export let labelShow;
+export let label;
+export let message;
+export let error;
+export let messagePersist;
+
 
 let layoutElement;
 let dirty = false;
@@ -53,9 +56,9 @@ $: allowBlur = allowBlur || false;
 $: disable = disable || false;
 $: minChars = minChars || 1;
 $: onlyAutocomplete = onlyAutocomplete || false;
-$: labelText = labelText || name;
+$: label = label || name;
 $: labelShow = labelShow || false;
-$: dirty = tags.length > 0
+$: dirty = tags.length > 0 || arrelementsmatch.length > 0 //ensure that label stays i place when imput looses focus when navigation to autocompletelist
 
 $: matchsID = id + "_matchs";
 
@@ -69,20 +72,7 @@ function setTag(e) {
             if (key === e.keyCode) {
                 
                 if (currentTag) e.preventDefault();
-                                
-                /* switch (input.keyCode) {
-                case 9:
-                    // TAB add first element on the autoComplete list
-                    if (autoComplete && document.getElementById(matchsID)) {                        
-                        addTag(document.getElementById(matchsID).querySelectorAll("li")[0].textContent);
-                    } else {
-                        addTag(currentTag);
-                    }                    
-                    break;
-                default:
-                    addTag(currentTag);
-                    break;
-                } */
+
                 if (autoComplete && arrelementsmatch.length > 0) {
                     addTag(arrelementsmatch[0].label);
                 } else {
@@ -134,8 +124,6 @@ function addTag(currentTag) {
     let newTag = currentObjTags ? currentObjTags : currentTag
     // do not mute the tags array with push or pop. 
     tags = tags.concat([newTag])
-    //tags.push(newTag)
-    //tags = tags;
     tag = "";
 
     dispatch('tagAdded', {
@@ -169,7 +157,6 @@ function removeTag(i) {
     document.getElementById(id).readOnly = false;
     placeholder = storePlaceholder;
     document.getElementById(id).focus();
-
 }
 
 function onPaste(e) {
@@ -345,7 +332,7 @@ function uniqueID() {
 };
 
 </script>
-<div class="textfield baseline" class:dirty>
+<div class="textfield" class:dirty>
     <div class="tags-container" class:sti-layout-disable={disable} bind:this={layoutElement}>
         {#if tags.length > 0}
             {#each tags as tag, i}
@@ -378,14 +365,17 @@ function uniqueID() {
             disabled={disable}
         >
         <div class="label">
-            {labelText}
-            <!--{#if required && !value.length}
-              <span class="required">*</span>
-            {/if}-->
+            {label}
           </div>
         <div class="focus-line"></div>
         <div class="input-line"></div>
+        {#if !!message || !!error}
+            <div class="help" class:persist={messagePersist} class:error>
+            <div class="message">{error || message}</div>
+            </div>
+        {/if}
     </div>
+    
 </div>
 
 {#if autoComplete && arrelementsmatch.length > 0}
@@ -619,6 +609,33 @@ function uniqueID() {
     cursor: not-allowed;
     opacity: 0.5;
 }
+
+.help {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -18px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    line-height: normal;
+    letter-spacing: 0.4px;
+    color: rgba(0, 0, 0, 0.3755);
+    /* postcss-custom-properties: ignore next */
+    color: var(--label, rgba(0, 0, 0, 0.3755));
+    opacity: 0;
+    overflow: hidden;
+    max-width: 90%;
+    white-space: nowrap;
+  }
+  .persist,
+  .error,
+  .tags-input:focus ~ .help {
+    opacity: 1;
+  }
+  .error {
+    color: #ff5252;
+  }
 
 /*.tags-container.sti-layout-disable:hover,
 .tags-container.sti-layout-disable:focus {
